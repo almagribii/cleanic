@@ -26,9 +26,9 @@ export function Navbar() {
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo - Kiri */}
         <Link href="/" className="inline-flex items-center gap-2 shrink-0">
-          <Image src="/globe.svg" alt="Paham Logo" width={24} height={24} />
+          <Image src="/globe.svg" alt="Cleanic Logo" width={24} height={24} />
           <span className="text-lg font-bold tracking-tight text-slate-900">
-            Paham
+            Cleanic
           </span>
         </Link>
 
