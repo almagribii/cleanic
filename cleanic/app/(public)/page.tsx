@@ -8,9 +8,8 @@ export default function Home() {
         color="#ffffff"
         heroImage="/hero.png"
       />
-      {/* Section About selanjutnya */}
-      <section className="h-screen bg-white flex items-center justify-center">
-        <p className="text-white w-1/3 text-center">Your about content here...</p>
+      <section className="flex h-screen items-center justify-center bg-white">
+        <p className="w-1/3 text-center text-white">Your about content here...</p>
       </section>
     </main>
   );

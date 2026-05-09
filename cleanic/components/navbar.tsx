@@ -5,17 +5,17 @@ import { usePathname } from "next/navigation";
 import { Menu, LayoutGrid } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 
 export function Navbar() {
   const pathname = usePathname();
-  const isLoggedIn = false;
+  const { isAuthenticated, loading } = useAuth();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const publicItems = [
     { href: "/", label: "Beranda" },
-    { href: "/article", label: "Artikel" },
-    { href: "/game", label: "Game" },
+    { href: "/articles", label: "Artikel" },
     { href: "/tentang", label: "Tentang" },
   ];
 
@@ -54,10 +54,12 @@ export function Navbar() {
 
         {/* Auth Buttons - Kanan */}
         <div className="hidden items-center gap-3 md:flex">
-          {isLoggedIn ? (
+          {loading ? (
+            <div className="h-8 w-32 bg-gray-200 rounded-full animate-pulse"></div>
+          ) : isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="rounded-full bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-600 inline-flex items-center gap-2"
+              className="rounded-full bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600 inline-flex items-center gap-2"
             >
               <LayoutGrid className="h-4 w-4" />
               Dashboard
@@ -112,11 +114,13 @@ export function Navbar() {
               );
             })}
             <div className="border-t border-slate-200 mt-2 pt-2">
-              {isLoggedIn ? (
+              {loading ? (
+                <div className="h-10 bg-gray-200 rounded-lg animate-pulse m-2"></div>
+              ) : isAuthenticated ? (
                 <Link
                   href="/dashboard"
                   onClick={() => setShowMobileMenu(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-cyan-600 hover:bg-cyan-50 rounded-lg transition"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-green-600 hover:bg-green-50 rounded-lg transition"
                 >
                   <LayoutGrid className="h-4 w-4" />
                   Dashboard
