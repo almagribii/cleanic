@@ -8,7 +8,7 @@ export default function PublicLayout({
   return (
     <>
       <Nav />
-      <main>{children}</main>
+      <main >{children}</main>
     </>
   );
 }
