@@ -115,7 +115,7 @@ const ContactSection = () => {
       className="bg-linear-to-br from-emerald-50 via-white to-lime-50 text-black"
     >
       {/* Icon yang berganti sesuai state iconIndex */}
-      <section className="contact-visual pointer-events-none fixed top-0 left-0 z-50 flex h-svh w-full items-center justify-center overflow-hidden">
+      <section className="contact-visual pointer-events-none fixed top-0 left-0 z-40 flex h-svh w-full items-center justify-center overflow-hidden">
         <div className="relative h-20 w-20 md:h-32 md:w-32">
           <Image
             src={`/kontak/icon_${iconIndex}.png`}
