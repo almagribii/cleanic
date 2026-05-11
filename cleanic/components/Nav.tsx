@@ -16,6 +16,7 @@ const Nav = () => {
     { name: "Beranda", href: "/", delay: "800ms" },
     { name: "Artikel", href: "/articles", delay: "900ms" },
     { name: "Tentang", href: "/tentang", delay: "1000ms" },
+    { name: "Kontak", href: "/kontak", delay: "1000ms" },
   ];
 
   useEffect(() => {
