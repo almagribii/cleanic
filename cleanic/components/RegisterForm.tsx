@@ -70,8 +70,6 @@ export function RegisterForm() {
             <ChevronLeft className="h-4 w-4" />
             Back
           </Link>
-
-        
         </div>
 
         <div className="mb-6 space-y-3">

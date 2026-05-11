@@ -111,19 +111,19 @@ export default async function ArticleDetailPage({
   }
 
   return (
-    <section className="bg-background min-h-screen pt-24 pb-20">
+    <section className="bg-background min-h-screen pt-18 pb-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <Link
-            href="/articles"
-            className="inline-flex items-center justify-center rounded-full border border-green-700/20 bg-green-700/10 px-5 py-2.5 text-sm font-semibold text-green-700 transition-colors hover:bg-green-700/15"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Kembali
-          </Link>
-        </div>
-
         <article className="bg-card rounded-3xl border border-slate-200/80 p-6 shadow-2xl md:p-10 lg:p-12">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <Link
+              href="/articles"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-100 transition hover:bg-emerald-100 hover:text-emerald-800"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali
+            </Link>
+          </div>
+
           <div className="relative mb-8 aspect-video w-full overflow-hidden rounded-2xl border border-slate-200/80 shadow-inner">
             <Image
               src={article.image_path || "/images/placeholder.jpg"}

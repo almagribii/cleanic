@@ -122,7 +122,7 @@ const Nav = () => {
         </div>
 
         <div className="relative z-10 flex flex-1 items-center justify-center">
-          <ul className="space-y-3 text-center sm:space-y-4">
+          <ul className="space-y-3 text-center sm:space-y-4 font-semibold">
             {navLinks.map((link) => (
               <li
                 key={link.name}

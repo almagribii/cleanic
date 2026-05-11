@@ -8,15 +8,27 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-raleway);
+  --font-serif: var(--font-raleway);
+  --font-mono: var(--font-raleway);
 }
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-raleway), Arial, Helvetica, sans-serif;
+}
+
+body {
   min-height: 100vh;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
 }
 
 * {
