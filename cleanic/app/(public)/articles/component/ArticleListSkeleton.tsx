@@ -3,7 +3,7 @@ import React from "react";
 const SkeletonArticleCard: React.FC = () => (
   <div
     className="group flex flex-col rounded-3xl bg-card shadow-lg border border-border 
-             overflow-hidden animate-pulse h-[450px]"
+             overflow-hidden animate-pulse h-112.5"
   >
     <div className="relative w-full h-48 bg-gray-200 dark:bg-gray-700">
       <div className="absolute bottom-0 left-0 p-4">

@@ -1,11 +1,16 @@
 "use client";
 
-/**
- * Client-side Hook untuk Authentication di React/Next.js
- * Letakkan file ini di: cleanic/hooks/useAuth.ts
- */
+import { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
-import { useState, useEffect, useCallback, useContext, createContext } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+  createContext,
+} from "react";
+
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -29,7 +34,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 /**
  * Hook untuk menggunakan auth context
@@ -64,44 +70,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      try {
-        setLoading(true);
-        setError(null);
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        });
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || "Login gagal");
-        }
-
-        const { token: newToken, user: userData } = data.data;
-
-        setToken(newToken);
-        setUser(userData);
-
-        // Simpan ke localStorage
-        localStorage.setItem("auth_token", newToken);
-        localStorage.setItem("auth_user", JSON.stringify(userData));
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Login error";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(data.error || "Login gagal");
       }
-    },
-    []
-  );
+
+      const { token: newToken, user: userData } = data.data;
+
+      setToken(newToken);
+      setUser(userData);
+
+      // Simpan ke localStorage
+      localStorage.setItem("auth_token", newToken);
+      localStorage.setItem("auth_user", JSON.stringify(userData));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Login error";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const register = useCallback(
     async (email: string, password: string, name?: string) => {
@@ -132,14 +135,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("auth_token", newToken);
         localStorage.setItem("auth_user", JSON.stringify(userData));
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Register error";
+        const errorMessage =
+          err instanceof Error ? err.message : "Register error";
         setError(errorMessage);
         throw err;
       } finally {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   const logout = useCallback(async () => {
@@ -226,7 +230,7 @@ export function ProtectedRoute({
   redirectTo?: string;
 }) {
   const { isAuthenticated, loading } = useAuth();
-  const router = require("next/router").useRouter();
+  const router = useRouter(); // Gunakan hook yang sudah di-import di atas
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -249,28 +253,36 @@ export function ProtectedRoute({
  * Axios interceptor untuk auto-add token
  * Gunakan di app initialization
  */
-export function setupAuthInterceptor(axiosInstance: any) {
+export function setupAuthInterceptor(axiosInstance: AxiosInstance) {
   axiosInstance.interceptors.request.use(
-    (config: any) => {
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    (config: InternalAxiosRequestConfig) => {
+      // Pastikan kita di browser sebelum akses localStorage
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("auth_token");
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
       }
       return config;
     },
-    (error: any) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
-  // Handle 401 responses
   axiosInstance.interceptors.response.use(
-    (response: any) => response,
-    async (error: any) => {
-      if (error.response?.status === 401) {
+    (response) => response,
+    async (error) => {
+      // Hindari redirect berulang jika sudah di halaman login
+      const isLoginPage =
+        typeof window !== "undefined" && window.location.pathname === "/login";
+
+      if (error.response?.status === 401 && !isLoginPage) {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
+
+        // Gunakan window.location hanya jika benar-benar perlu hard redirect
         window.location.href = "/login";
       }
       return Promise.reject(error);
-    }
+    },
   );
 }

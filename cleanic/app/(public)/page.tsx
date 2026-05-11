@@ -1,4 +1,4 @@
-import MorphogenesisHero from "@/components/bisa";
+import MorphogenesisHero from "@/components/Morphogenesis";
 
 export default function Home() {
   return (
