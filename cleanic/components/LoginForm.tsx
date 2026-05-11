@@ -55,12 +55,7 @@ export function LoginForm() {
             Back
           </Link>
 
-          <Link
-            href="/register"
-            className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
-          >
-            Register
-          </Link>
+         
         </div>
 
         <div className="mb-8 space-y-4">

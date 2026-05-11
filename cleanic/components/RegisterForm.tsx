@@ -71,12 +71,7 @@ export function RegisterForm() {
             Back
           </Link>
 
-          <Link
-            href="/login"
-            className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
-          >
-            Login
-          </Link>
+        
         </div>
 
         <div className="mb-6 space-y-3">
