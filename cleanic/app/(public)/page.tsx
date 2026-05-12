@@ -1,4 +1,5 @@
 import MorphogenesisHero from "@/components/Morphogenesis";
+import Team from "@/components/Team";
 
 export default function Home() {
   return (
@@ -8,9 +9,13 @@ export default function Home() {
         color="#15803d"
         heroImage="/hero.png"
       />
-      <section className="flex h-screen items-center justify-center bg-white">
-        <p className="w-1/3 text-center text-white">Your about content here...</p>
-      </section>
+      <div
+        className="h-96 w-full"
+        style={{
+          background: "linear-gradient(to bottom, #15803d 0%, #15803d 20%, #4ade80 50%, #ffffff 100%)",
+        }}
+      />
+      <Team />
     </main>
   );
 }
