@@ -12,18 +12,16 @@ if (typeof window !== "undefined") {
 
 const ContactSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  // State untuk melacak indeks icon (1-7)
   const [iconIndex, setIconIndex] = useState(1);
 
   const contactData = [
-    { label: "Lokasi Pusat", value: "Ponorogo" },
-    { label: "Waktu Lokal", value: "20:03:57 (WIB)" }, 
-    { label: "Layanan Warga", value: "halo@cleanic.site" },
-    { label: "Kerja Sama UMKM", value: "business@cleanic.site" },
-    { label: "Kolaborasi Komunitas", value: "Warga & Aktivis Lingkungan" },
-    { label: "Karir & Relawan", value: "hiring@cleanic.site" },
-    { label: "Telepon / WhatsApp", value: "+62 8221 0980 898" },
-    { label: "Media Sosial", value: "@Cleanic.id" },
+    { label: "Whatsapp", value: "Ponorogo, Inodnesia" },
+    { label: "Email", value: "halo@cleanic.site" },
+    { label: "Tiktok", value: "business@cleanic.site" },
+    { label: "Twitter", value: "Warga & Aktivis Lingkungan" },
+    { label: "Instagram", value: "hiring@cleanic.site" },
+    { label: "Website", value: "www.cleanic.site" },
+    { label: "Youtube", value: "@Cleanic.id" },
   ];
 
   useEffect(() => {
@@ -32,116 +30,92 @@ const ContactSection = () => {
     const lenis = new Lenis({
       infinite: true,
       syncTouch: true,
+      lerp: 0.08,
     });
 
     lenis.on("scroll", ScrollTrigger.update);
     const tickerCb = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(tickerCb);
-    gsap.ticker.lagSmoothing(0);
 
     const contactRows =
       containerRef.current.querySelectorAll(".contact-info-row");
-    const contactVisual = containerRef.current.querySelector(
-      ".contact-visual",
-    ) as HTMLElement;
-    const contactRowMaxGap = window.innerWidth < 1000 ? 5 : 10;
 
-    const getVisualCenter = () =>
-      contactVisual.offsetTop + contactVisual.offsetHeight / 2;
-
-    // Animasi Gap (GSAP)
-    contactRows.forEach((row) => {
-      const htmlRow = row as HTMLElement;
-      ScrollTrigger.create({
-        trigger: htmlRow,
-        start: () => `top+=${getVisualCenter() - 550} center`,
-        end: () => `top+=${getVisualCenter() - 450} center`,
-        scrub: true,
-        onUpdate: (self) => {
-          htmlRow.style.gap = `${1 + (contactRowMaxGap - 1) * self.progress}rem`;
-        },
-      });
-
-      ScrollTrigger.create({
-        trigger: htmlRow,
-        start: () => `top+=${getVisualCenter() - 400} center`,
-        end: () => `top+=${getVisualCenter() - 300} center`,
-        scrub: true,
-        onUpdate: (self) => {
-          htmlRow.style.gap = `${contactRowMaxGap - (contactRowMaxGap - 1) * self.progress}rem`;
-        },
-      });
-    });
-
-    // LOGIKA PERGANTIAN GAMBAR (Original Logic)
-    let lastCenteredRow: Element | null = null;
-
-    const handleScroll = () => {
+    const updateGaps = () => {
       const viewportCenter = window.innerHeight / 2;
-      let closestRow: Element | null = null;
-      let minDistance = Infinity;
+      const influenceArea = 150; // Area sempit agar efek "snap" terasa
+      const maxGap = window.innerWidth < 768 ? 4 : 10;
+      const minGap = 0.1;
 
-      contactRows.forEach((row) => {
+      contactRows.forEach((row, index) => {
         const rect = row.getBoundingClientRect();
         const rowCenter = rect.top + rect.height / 2;
-        const distance = Math.abs(rowCenter - viewportCenter);
+        const distanceToCenter = Math.abs(rowCenter - viewportCenter);
 
-        // Ambang batas 25px dari tengah (seperti kode aslimu)
-        if (distance < minDistance && distance < 25) {
-          minDistance = distance;
-          closestRow = row;
+        if (distanceToCenter < influenceArea) {
+          const progress = 1 - distanceToCenter / influenceArea;
+          const easedProgress = Math.pow(progress, 4); // Efek terbuka dengan cepat
+
+          const currentGap = minGap + (maxGap - minGap) * easedProgress;
+
+          (row as HTMLElement).style.gap = `${currentGap}rem`;
+
+          // Berganti icon saat baris benar-benar di tengah
+          if (distanceToCenter < 12) {
+            const originalIdx = index % contactData.length;
+            setIconIndex((originalIdx % 7) + 1);
+          }
+        } else {
+          // Tetap Hitam Pekat, hanya gap yang merapat
+          (row as HTMLElement).style.gap = `${minGap}rem`;
         }
       });
-
-      // Jika baris yang mendekati tengah berganti, update iconIndex
-      if (closestRow && closestRow !== lastCenteredRow) {
-        lastCenteredRow = closestRow;
-        setIconIndex((prev) => (prev % 7) + 1);
-      }
     };
 
-    lenis.on("scroll", handleScroll);
+    lenis.on("scroll", updateGaps);
+    updateGaps();
 
     return () => {
       lenis.destroy();
       gsap.ticker.remove(tickerCb);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="bg-linear-to-br from-emerald-50 via-white to-lime-50 text-black"
-    >
-      {/* Icon yang berganti sesuai state iconIndex */}
-      <section className="contact-visual pointer-events-none fixed top-0 left-0 z-40 flex h-svh w-full items-center justify-center overflow-hidden">
-        <div className="relative h-20 w-20 md:h-32 md:w-32">
+    <div ref={containerRef} className="overflow-hidden bg-white">
+      {/* Visual Icon di Tengah */}
+      <section className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
+        <div className="relative flex h-20 w-20 items-center justify-center md:h-36 md:w-36">
           <Image
             src={`/kontak/icon_${iconIndex}.png`}
-            alt="Dynamic Icon"
+            alt="Icon"
             fill
-            className="object-contain transition-opacity duration-200"
+            className="scale-110 object-contain"
             priority
           />
         </div>
       </section>
 
-      {/* Konten (Diloop untuk efek infinite) */}
+      {/* Konten dengan Teks Hitam Murni #000000 Tanpa Opacity */}
       {[...Array(10)].map((_, sectionIdx) => (
         <section
           key={sectionIdx}
-          className="contact-info relative flex h-svh w-full flex-col justify-center gap-6"
+          className="relative flex h-svh w-full flex-col justify-center gap-6 md:gap-8"
         >
           {contactData.map((item, idx) => (
             <div
               key={idx}
-              className="contact-info-row flex justify-center gap-4 px-4 will-change-[gap]"
+              className="contact-info-row flex items-center justify-center px-4 text-[#000000] opacity-100 will-change-[gap]"
             >
-              <p className="flex-1 text-right text-[1.2rem] leading-none uppercase md:text-[1.8rem]">
+              {/* Label */}
+              <p className="flex-1 text-right text-[0.85rem] leading-none font-light tracking-[0.2em] text-[#000000] uppercase md:text-[1.1rem]">
                 {item.label}
               </p>
-              <p className="flex-1 text-left text-[1.2rem] leading-none text-[#4f4f4f] md:text-[1.8rem]">
+
+              {/* Spacer Tengah */}
+              <div className="w-1 shrink-0 md:w-2" />
+
+              {/* Value */}
+              <p className="flex-1 text-left text-[0.85rem] leading-none font-medium tracking-tight text-[#000000] md:text-[1.1rem]">
                 {item.value}
               </p>
             </div>
@@ -156,6 +130,8 @@ const ContactSection = () => {
         body {
           -ms-overflow-style: none;
           scrollbar-width: none;
+          overflow-x: hidden;
+          background-color: #ffffff;
         }
       `}</style>
     </div>
