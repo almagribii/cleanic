@@ -24,7 +24,7 @@ interface SplitCharsProps {
 const SplitChars = ({ text, headingRef, isDefault }: SplitCharsProps) => (
   <h1
     ref={headingRef}
-    className="text-center text-[clamp(4rem,11vw,18rem)] leading-[0.9] whitespace-nowrap text-black font-extrabold max-[999px]:text-[3rem]"
+    className="text-center text-[clamp(4rem,11vw,18rem)] leading-[0.9] whitespace-nowrap text-black font-semibold max-[999px]:text-[3rem]"
   >
     {text.split("").map((char, index) => (
       <span

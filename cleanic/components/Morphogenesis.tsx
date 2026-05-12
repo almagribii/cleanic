@@ -362,7 +362,7 @@ const Word = ({
   total: number;
   progress: MotionValue<number>;
 }) => {
-  const start = 0.2 + (index / total) * 0.2;
+  const start = 0.1 + (index / total) * 0.2;
   const end = start + 0.05;
   const opacity = useTransform(progress, [start, end], [0, 1]);
 

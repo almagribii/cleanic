@@ -10,9 +10,10 @@ export default function Home() {
         heroImage="/hero.png"
       />
       <div
-        className="h-96 w-full"
+        className="w-full h-20"
         style={{
-          background: "linear-gradient(to bottom, #15803d 0%, #15803d 20%, #4ade80 50%, #ffffff 100%)",
+          background:
+            "linear-gradient(to bottom, #15803d 0%, #15803d 20%, #4ade80 50%, #ffffff 100%)",
         }}
       />
       <Team />
