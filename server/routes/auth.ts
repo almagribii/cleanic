@@ -1,11 +1,7 @@
-import { config } from "dotenv";
 import { Router, Response, Request } from "express";
-import { PrismaClient } from "@prisma/client";
 import { hashPassword, verifyPassword, generateToken } from "../lib/auth";
 import { authMiddleware } from "../middleware/auth";
-
-// Ensure environment variables are loaded
-config();
+import { getPrisma } from "../lib/prisma";
 
 interface AuthPayload {
   email: string;
@@ -30,20 +26,6 @@ interface AuthRequest extends Request {
 }
 
 const router = Router();
-
-// Create Prisma client lazily
-let prismaInstance: PrismaClient | null = null;
-
-function getPrisma() {
-  if (!prismaInstance) {
-    if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL is not set in environment variables");
-    }
-    
-    prismaInstance = new PrismaClient();
-  }
-  return prismaInstance;
-}
 
 /**
  * POST /auth/register
@@ -191,100 +173,112 @@ router.post("/login", async (req, res): Promise<void> => {
  * GET /auth/me
  * Dapatkan data user yang sedang login
  */
-router.get("/me", authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.id;
+router.get(
+  "/me",
+  authMiddleware,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        error: "Unauthorized",
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: "Unauthorized",
+        } as AuthResponse);
+        return;
+      }
+
+      const user = await getPrisma().user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          image: true,
+          points: true,
+          createdAt: true,
+        },
+      });
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          error: "User tidak ditemukan",
+        } as AuthResponse);
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: { user },
       } as AuthResponse);
-      return;
-    }
-
-    const user = await getPrisma().user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        image: true,
-        points: true,
-        createdAt: true,
-      },
-    });
-
-    if (!user) {
-      res.status(404).json({
+    } catch (error) {
+      console.error("Get user error:", error);
+      res.status(500).json({
         success: false,
-        error: "User tidak ditemukan",
+        error: "Terjadi kesalahan",
       } as AuthResponse);
-      return;
     }
-
-    res.status(200).json({
-      success: true,
-      data: { user },
-    } as AuthResponse);
-  } catch (error) {
-    console.error("Get user error:", error);
-    res.status(500).json({
-      success: false,
-      error: "Terjadi kesalahan",
-    } as AuthResponse);
-  }
-});
+  },
+);
 
 /**
  * POST /auth/logout
  * Logout user (cleanup di client side)
  */
-router.post("/logout", authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    res.status(200).json({
-      success: true,
-      message: "Logout berhasil",
-    } as AuthResponse);
-  } catch (error) {
-    console.error("Logout error:", error);
-    res.status(500).json({
-      success: false,
-      error: "Terjadi kesalahan saat logout",
-    } as AuthResponse);
-  }
-});
+router.post(
+  "/logout",
+  authMiddleware,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      res.status(200).json({
+        success: true,
+        message: "Logout berhasil",
+      } as AuthResponse);
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Terjadi kesalahan saat logout",
+      } as AuthResponse);
+    }
+  },
+);
 
 /**
  * POST /auth/refresh-token
  * Refresh JWT token
  */
-router.post("/refresh-token", authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.id;
+router.post(
+  "/refresh-token",
+  authMiddleware,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        error: "Unauthorized",
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: "Unauthorized",
+        } as AuthResponse);
+        return;
+      }
+
+      const token = generateToken(userId);
+
+      res.status(200).json({
+        success: true,
+        message: "Token berhasil di-refresh",
+        data: { token },
       } as AuthResponse);
-      return;
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Terjadi kesalahan saat refresh token",
+      } as AuthResponse);
     }
-
-    const token = generateToken(userId);
-
-    res.status(200).json({
-      success: true,
-      message: "Token berhasil di-refresh",
-      data: { token },
-    } as AuthResponse);
-  } catch (error) {
-    console.error("Refresh token error:", error);
-    res.status(500).json({
-      success: false,
-      error: "Terjadi kesalahan saat refresh token",
-    } as AuthResponse);
-  }
-});
+  },
+);
 
 export default router;

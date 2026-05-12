@@ -9,10 +9,10 @@ const MOBILE_BREAKPOINT = 1000;
 
 const TEAMS = [
   { name: "Brucad", image: "/brucad.jpeg" },
-  { name: "Wafira", image: "/brucad.jpeg" },
+  { name: "Wafira", image: "/wafira.jpeg" },
   { name: "Faza", image: "/brucad.jpeg" },
   { name: "Firman", image: "/brucad.jpeg" },
-  { name: "Chinta", image: "/brucad.jpeg" }, 
+  { name: "Chinta", image: "/chinta.png" }, 
 ];
 
 interface SplitCharsProps {

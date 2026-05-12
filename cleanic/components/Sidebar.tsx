@@ -6,6 +6,7 @@ import {
   ScanLine,
   Map,
   Trophy,
+  FileText,
   User,
   Settings,
   LogOut,
@@ -29,31 +30,30 @@ export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
- const [collapsed, setCollapsed] = useState<boolean>(() => {
-   if (typeof window !== "undefined") {
-     return localStorage.getItem("cleanic.sidebar.collapsed") === "1";
-   }
-   return true;
- });
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("cleanic.sidebar.collapsed") === "1";
+    }
+    return true;
+  });
 
- useEffect(() => {
-   if (onCollapseChange) onCollapseChange(collapsed);
- }, [onCollapseChange, collapsed]);
+  useEffect(() => {
+    if (onCollapseChange) onCollapseChange(collapsed);
+  }, [onCollapseChange, collapsed]);
 
- const toggleCollapsed = () => {
-   setCollapsed((v) => {
-     const next = !v;
-     localStorage.setItem("cleanic.sidebar.collapsed", next ? "1" : "0");
-     return next;
-   });
- };
-
-
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      const next = !v;
+      localStorage.setItem("cleanic.sidebar.collapsed", next ? "1" : "0");
+      return next;
+    });
+  };
 
   const items = useMemo(
     () => [
       { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
       { href: "/dashboard/scanner", label: "AI Scanner", icon: ScanLine },
+      { href: "/dashboard/report", label: "Laporan Sampah", icon: FileText },
       { href: "/dashboard/chatbot", label: "AI Chatbot", icon: Map },
       { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Trophy },
       { href: "/dashboard/profile", label: "Profile", icon: User },
@@ -66,14 +66,14 @@ export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
 
   return (
     <>
-      <div className="fixed top-0 right-0 left-0 z-60 flex h-16 items-center justify-between shadow-2xl bg-white/90 px-4 backdrop-blur-md lg:hidden">
+      <div className="fixed top-0 right-0 left-0 z-60 flex h-16 items-center justify-between bg-white/90 px-4 shadow-2xl backdrop-blur-md lg:hidden">
         <div className="flex items-center gap-2">
-          <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden ">
+          <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden">
             <Image
-              src="/logo-cleanic-trans.png" 
+              src="/logo-cleanic-trans.png"
               alt="Logo"
               fill
-              className="object-contain p-1.5" 
+              className="object-contain p-1.5"
             />
           </div>
 
@@ -81,12 +81,10 @@ export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
             <span className="text-sm leading-none font-bold text-slate-900">
               Cleanic
             </span>
-          
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-        
           <Link href="/" className="p-2 text-slate-500">
             <ArrowLeft size={20} />
           </Link>

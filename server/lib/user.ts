@@ -1,18 +1,4 @@
-import { config } from "dotenv";
-import { PrismaClient } from "@prisma/client";
-
-// Ensure environment variables are loaded
-config();
-
-// Lazy-loaded Prisma instance
-let prismaInstance: PrismaClient | null = null;
-
-function getPrisma() {
-  if (!prismaInstance) {
-    prismaInstance = new PrismaClient();
-  }
-  return prismaInstance;
-}
+import { getPrisma } from "./prisma";
 
 /**
  * Utility functions untuk auth
@@ -53,7 +39,7 @@ export async function updateUserProfile(
   data: {
     name?: string;
     image?: string;
-  }
+  },
 ) {
   return getPrisma().user.update({
     where: { id: userId },
@@ -71,7 +57,10 @@ export async function updateUserProfile(
 /**
  * Update user password
  */
-export async function updateUserPassword(userId: string, hashedPassword: string) {
+export async function updateUserPassword(
+  userId: string,
+  hashedPassword: string,
+) {
   return getPrisma().user.update({
     where: { id: userId },
     data: { password: hashedPassword },

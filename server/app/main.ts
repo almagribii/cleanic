@@ -6,7 +6,7 @@ const envPath = path.join(__dirname, "..", ".env");
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, "utf-8");
   const lines = envContent.split("\n");
-  
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith("#")) {
@@ -14,8 +14,10 @@ if (fs.existsSync(envPath)) {
       if (key) {
         let value = valueParts.join("=");
         // Remove quotes if present
-        if ((value.startsWith('"') && value.endsWith('"')) || 
-            (value.startsWith("'") && value.endsWith("'"))) {
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
           value = value.slice(1, -1);
         }
         if (!process.env[key]) {
@@ -29,23 +31,29 @@ if (fs.existsSync(envPath)) {
 import express from "express";
 import cors from "cors";
 import authRoutes from "../routes/auth";
+import reportRoutes from "../routes/reports";
+import leaderboardRoutes from "../routes/leaderboard";
 import { authMiddleware } from "../middleware/auth";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
 // Contoh protected route
 app.get("/api/protected", authMiddleware, (req: any, res) => {

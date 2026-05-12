@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/api";
 
 interface User {
   id: string;
@@ -34,8 +35,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+function getInitialAuthState() {
+  if (typeof window === "undefined") {
+    return { user: null, token: null };
+  }
+
+  const savedToken = localStorage.getItem("auth_token");
+  const savedUser = localStorage.getItem("auth_user");
+
+  if (!savedToken || !savedUser) {
+    return { user: null, token: null };
+  }
+
+  try {
+    return {
+      token: savedToken,
+      user: JSON.parse(savedUser) as User,
+    };
+  } catch {
+    return { user: null, token: null };
+  }
+}
 
 /**
  * Hook untuk menggunakan auth context
@@ -52,23 +72,11 @@ export function useAuth() {
  * Provider component untuk auth
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const initialAuthState = getInitialAuthState();
+  const [user, setUser] = useState<User | null>(initialAuthState.user);
+  const [token, setToken] = useState<string | null>(initialAuthState.token);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Load token dari localStorage saat mount
-  useEffect(() => {
-    const savedToken = localStorage.getItem("auth_token");
-    const savedUser = localStorage.getItem("auth_user");
-
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-
-    setLoading(false);
-  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     try {

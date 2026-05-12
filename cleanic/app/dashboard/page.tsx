@@ -7,6 +7,7 @@ import {
   MapPin,
   TrendingUp,
   Clock,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -94,13 +95,20 @@ export default function DashboardPage() {
       {/* Quick Actions Section */}
       <section className="rounded-4xl border border-slate-50 bg-white p-6 shadow-sm">
         <h2 className="mb-5 text-lg font-bold text-slate-900">Quick Actions</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/dashboard/scanner"
             className="flex items-center justify-center gap-3 rounded-2xl bg-green-700 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-[#2d4327]"
           >
             <ScanLine size={18} />
             Start Scanning
+          </Link>
+          <Link
+            href="/dashboard/report"
+            className="flex items-center justify-center gap-3 rounded-2xl bg-green-700 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-[#2d4327]"
+          >
+            <FileText size={18} />
+            Laporan Sampah
           </Link>
           <Link
             href="/dashboard/history"

@@ -66,15 +66,15 @@ export function PublicFooter() {
             <h4 className="text-xl font-semibold text-white">Kontak</h4>
             <ul className="mt-5 space-y-4 text-slate-300">
               <li className="flex items-center gap-3">
-                <AtSign className="h-5 w-5 text-cyan-200" />
+                <AtSign className="h-5 w-5 text-green-200" />
                 <span>cleanic.site</span>
               </li>
               <li className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-cyan-200" />
+                <Mail className="h-5 w-5 text-green-200" />
                 <span>brucadalm@gmail.com</span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-cyan-200" />
+                <Phone className="h-5 w-5 text-green-200" />
                 <span>+62 822-1098-0898</span>
               </li>
             </ul>
