@@ -330,7 +330,7 @@ const MorphogenesisHero = ({
             </motion.div>
 
             <div className="flex w-full items-center px-4 text-center  md:px-8">
-              <h2 className="mx-auto w-full max-w-3xl font-semibold text-[clamp(1.2rem,2.5vw,2.8rem)] leading-[1.6] tracking-normal text-[#0f0f0f] uppercase">
+              <h2 className="mx-auto w-full max-w-3xl font-semibold text-[clamp(1.2rem,2.5vw,2.8rem)] leading-[1.6] tracking-normal text-white uppercase">
                 {words.map((word, i) => (
                   <Word
                     key={i}

@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { LayoutGrid, CircleUserRound } from "lucide-react";
 import Image from "next/image";
 
+
+
 const Nav = () => {
   const [navOpen, setNavOpen] = useState(false);
   const { isAuthenticated, loading } = useAuth();
@@ -144,7 +146,7 @@ const Nav = () => {
           </ul>
         </div>
 
-        <div className="absolute right-0 bottom-0 left-0 z-10 flex w-full flex-col gap-4 overflow-hidden border-t border-white/15 px-6 pt-5 pb-6 text-xs tracking-[0.2em] text-emerald-100 uppercase sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:pb-8">
+        <div className="absolute right-0 bottom-0 left-0 z-10 flex w-full flex-col gap-4 overflow-hidden border-t border-white/15 justify-center items-center px-6 pt-5 pb-6 text-xs tracking-[0.2em] text-emerald-100 uppercase sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:pb-8">
           <div
             className={`transition-all duration-1000 ${
               navOpen ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
@@ -154,7 +156,7 @@ const Nav = () => {
             Crafted in Indonesia
           </div>
 
-          <div className="ml-auto flex gap-6">
+          <div className="ml-auto gap-6 hidden sm:block">
             <a
               href="https://youtube.com"
               target="_blank"
@@ -166,7 +168,7 @@ const Nav = () => {
               }`}
               style={{ transitionDelay: navOpen ? "1.3s" : "0s" }}
             >
-              YouTube
+              YouTube {" "}
             </a>
             <a
               href="https://instagram.com"

@@ -1,43 +1,34 @@
 "use client";
-
-import { DashboardSidebar } from "@/components/sidebar";
-import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useState } from "react";
+import { DashboardSidebar } from "@/components/Sidebar";
+import { DashboardHeader } from "@/components/Header";
 
 export default function DashboardLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  const { loading, isAuthenticated } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isAuthenticated, loading, router]);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-400" />
-          <p className="text-slate-300">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
+}) {
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
-    <div className="min-h-screen bg-slate-50 lg:pl-72">
-      <DashboardSidebar />
-      <main className="px-4 py-6 sm:px-6 lg:px-10 lg:py-10">{children}</main>
+    <div className="min-h-screen bg-[#fafafa]">
+      {/* Sidebar ini sudah termasuk Mobile Header & Mobile Sidebar */}
+      <DashboardSidebar onCollapseChange={setIsCollapsed} />
+
+      <div
+        className={`transition-all duration-300 ease-in-out ${isCollapsed ? "lg:pl-20" : "lg:pl-64"}`}
+      >
+        {/* Header Desktop - Muncul hanya di layar besar */}
+        <DashboardHeader collapsed={isCollapsed} />
+
+        {/* Konten Utama
+            pt-20: Memberikan ruang agar konten tidak tertutup Header Mobile
+            lg:pt-20: Memberikan ruang agar konten tidak tertutup Header Desktop
+        */}
+        <main className="px-4 pt-20 pb-10 sm:px-6 lg:px-10 lg:pt-20">
+          <div className="mx-auto max-w-[1600px]">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

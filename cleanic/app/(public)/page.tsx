@@ -5,7 +5,7 @@ export default function Home() {
     <main>
       <MorphogenesisHero
         title="CLEANIC"
-        color="#ffffff"
+        color="#15803d"
         heroImage="/hero.png"
       />
       <section className="flex h-screen items-center justify-center bg-white">
