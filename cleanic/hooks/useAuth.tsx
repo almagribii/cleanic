@@ -30,6 +30,7 @@ interface AuthContextType {
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
+  setUser: (user: User | null) => void;
   isAuthenticated: boolean;
 }
 
@@ -73,10 +74,22 @@ export function useAuth() {
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const initialAuthState = getInitialAuthState();
-  const [user, setUser] = useState<User | null>(initialAuthState.user);
+  const [user, setUserState] = useState<User | null>(initialAuthState.user);
   const [token, setToken] = useState<string | null>(initialAuthState.token);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Wrapper function untuk setUser yang juga menyimpan ke localStorage
+  const setUser = (newUser: User | null) => {
+    setUserState(newUser);
+    if (typeof window !== "undefined") {
+      if (newUser) {
+        localStorage.setItem("auth_user", JSON.stringify(newUser));
+      } else {
+        localStorage.removeItem("auth_user");
+      }
+    }
+  };
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -220,6 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     logout,
     refreshToken,
+    setUser,
     isAuthenticated: !!user && !!token,
   };
 
@@ -238,7 +252,7 @@ export function ProtectedRoute({
   redirectTo?: string;
 }) {
   const { isAuthenticated, loading } = useAuth();
-  const router = useRouter(); // Gunakan hook yang sudah di-import di atas
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -247,14 +261,13 @@ export function ProtectedRoute({
   }, [isAuthenticated, loading, redirectTo, router]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div suppressHydrationWarning>Loading...</div>;
   }
 
   if (!isAuthenticated) {
     return null;
   }
-
-  return children;
+  return <>{children}</>;
 }
 
 /**

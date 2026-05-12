@@ -13,7 +13,7 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#fafafa]">
+      <div className="min-h-screen bg-[#fafafa]" suppressHydrationWarning>
         {/* Sidebar ini sudah termasuk Mobile Header & Mobile Sidebar */}
         <DashboardSidebar onCollapseChange={setIsCollapsed} />
 

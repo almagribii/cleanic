@@ -33,6 +33,7 @@ import cors from "cors";
 import authRoutes from "../routes/auth";
 import reportRoutes from "../routes/reports";
 import leaderboardRoutes from "../routes/leaderboard";
+import usersRoutes from "../routes/users";
 import { authMiddleware } from "../middleware/auth";
 
 const app = express();
@@ -55,6 +56,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/users", usersRoutes);
 
 // Contoh protected route
 app.get("/api/protected", authMiddleware, (req: any, res) => {

@@ -339,7 +339,7 @@ export default function ReportPage() {
                         type="button"
                         onClick={capturePhoto}
                         disabled={!cameraReady}
-                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         ✓ Capture
                       </button>
@@ -360,7 +360,9 @@ export default function ReportPage() {
                       audio={false}
                       screenshotFormat="image/jpeg"
                       screenshotQuality={0.9}
-                      videoConstraints={{ facingMode: { ideal: "environment" } }}
+                      videoConstraints={{
+                        facingMode: { ideal: "environment" },
+                      }}
                       onUserMedia={() => {
                         setCameraReady(true);
                         setCameraMessage(null);
@@ -368,15 +370,18 @@ export default function ReportPage() {
                       onUserMediaError={() => {
                         setCameraReady(false);
                         setCameraMessage(
-                          typeof window !== "undefined" && !window.isSecureContext
+                          typeof window !== "undefined" &&
+                            !window.isSecureContext
                             ? "Kamera butuh HTTPS/localhost. Buka via localhost atau gunakan upload file."
                             : "Izin kamera ditolak / tidak tersedia. Gunakan upload file atau buka kamera native.",
                         );
                       }}
-                      className="h-80 w-full object-cover rounded-2xl bg-black"
+                      className="h-80 w-full rounded-2xl bg-black object-cover"
                     />
                     {cameraMessage && (
-                      <p className="mt-2 text-xs text-slate-500">{cameraMessage}</p>
+                      <p className="mt-2 text-xs text-slate-500">
+                        {cameraMessage}
+                      </p>
                     )}
                   </div>
                 )}
@@ -390,7 +395,10 @@ export default function ReportPage() {
                     const file = event.target.files?.[0];
                     if (file) {
                       readFileAsDataUrl(file).then((dataUrl) => {
-                        setForm((current) => ({ ...current, imageUrl: dataUrl }));
+                        setForm((current) => ({
+                          ...current,
+                          imageUrl: dataUrl,
+                        }));
                         setSelectedFileName(file.name);
                         stopCamera();
                       });
@@ -408,7 +416,7 @@ export default function ReportPage() {
                     }))
                   }
                   placeholder="atau paste URL gambar..."
-                  className="w-full bg-transparent text-sm outline-none placeholder-slate-400"
+                  className="w-full bg-transparent text-sm placeholder-slate-400 outline-none"
                 />
               </div>
             </label>
@@ -416,7 +424,9 @@ export default function ReportPage() {
             <label className="space-y-2">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-emerald-600" />
-                <span className="text-sm font-semibold text-slate-900">Alamat</span>
+                <span className="text-sm font-semibold text-slate-900">
+                  Alamat
+                </span>
               </div>
               <input
                 required
@@ -428,14 +438,16 @@ export default function ReportPage() {
                   }))
                 }
                 placeholder="Lokasi sampah ditemukan"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm placeholder-slate-400 transition outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               />
             </label>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Latitude</span>
+              <span className="text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                Latitude
+              </span>
               <input
                 required
                 value={form.latitude}
@@ -447,12 +459,14 @@ export default function ReportPage() {
                 }
                 placeholder="-6.200000"
                 inputMode="decimal"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm placeholder-slate-400 transition outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               />
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Longitude</span>
+              <span className="text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                Longitude
+              </span>
               <input
                 required
                 value={form.longitude}
@@ -464,13 +478,15 @@ export default function ReportPage() {
                 }
                 placeholder="106.816666"
                 inputMode="decimal"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm placeholder-slate-400 transition outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               />
             </label>
           </div>
 
           <label className="block space-y-2">
-            <span className="text-sm font-semibold text-slate-900">Deskripsi (opsional)</span>
+            <span className="text-sm font-semibold text-slate-900">
+              Deskripsi (opsional)
+            </span>
             <textarea
               value={form.description}
               onChange={(event) =>
@@ -481,7 +497,7 @@ export default function ReportPage() {
               }
               rows={3}
               placeholder="Jelaskan jenis sampah dan kondisi lokasi..."
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
+              className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm placeholder-slate-400 transition outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
             />
           </label>
 
@@ -502,7 +518,7 @@ export default function ReportPage() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:shadow-emerald-900/50 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none active:scale-95"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-700 hover:shadow-emerald-900/50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
           >
             {loading ? (
               <Loader2 size={16} className="animate-spin" />
@@ -585,11 +601,15 @@ export default function ReportPage() {
                     <div className="flex items-center justify-between text-xs text-slate-600">
                       <div className="flex gap-3">
                         <div className="flex items-center gap-1">
-                          <span className="font-semibold text-slate-900">{report.upvotes}</span>
+                          <span className="font-semibold text-slate-900">
+                            {report.upvotes}
+                          </span>
                           <span>upvotes</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="font-semibold text-slate-900">{report.latitude.toFixed(2)}°</span>
+                          <span className="font-semibold text-slate-900">
+                            {report.latitude.toFixed(2)}°
+                          </span>
                           <span>lat</span>
                         </div>
                       </div>

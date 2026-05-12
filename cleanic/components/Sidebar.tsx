@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/api";
 import {
   LayoutGrid,
   ScanLine,
@@ -15,11 +16,13 @@ import {
   Menu,
   X,
   ArrowLeft,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 
 type SidebarProps = {
   onCollapseChange?: (collapsed: boolean) => void;
@@ -27,8 +30,16 @@ type SidebarProps = {
 
 export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, setUser, token } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const displayImage = useMemo(() => {
+    return user?.image && user.image.length > 10 ? user.image : null;
+  }, [user?.image]);
+  const [imageError, setImageError] = useState(false);
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -47,6 +58,55 @@ export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
       localStorage.setItem("cleanic.sidebar.collapsed", next ? "1" : "0");
       return next;
     });
+  };
+
+  const handleProfilePhotoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !token) return;
+
+    try {
+      setUploadError(null);
+      setUploading(true);
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target?.result as string;
+        try {
+          const response = await apiRequest<{
+            data: { image?: string | null };
+          }>("/users/profile", {
+            method: "PUT",
+            token,
+            body: JSON.stringify({ image: dataUrl }),
+          });
+          // Update user in context - will also save to localStorage via setUser wrapper
+          if (setUser && user) {
+            setUser({ ...user, image: response.data.image });
+            setImageError(false);
+          }
+        } catch (err) {
+          setUploadError(err instanceof Error ? err.message : "Upload gagal");
+        } finally {
+          setUploading(false);
+          // Reset file input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Gagal memproses foto",
+      );
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const items = useMemo(
@@ -154,17 +214,54 @@ export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
           className={`flex flex-col items-center py-12 transition-all ${collapsed ? "px-2" : "px-6"}`}
         >
           <div
-            className={`relative rounded-full border-2 border-emerald-500/30 bg-emerald-900/20 p-1 transition-all duration-500 ${collapsed ? "h-11 w-11" : "h-24 w-24"}`}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            className={`group relative rounded-full border-2 border-emerald-500/30 bg-emerald-900/20 p-1 transition-all duration-500 ${collapsed ? "h-11 w-11 cursor-pointer hover:border-emerald-400" : "h-24 w-24 cursor-pointer hover:border-yellow-400"}`}
           >
             <div className="relative h-full w-full overflow-hidden rounded-full border-2 border-yellow-200">
-              <Image
-                src="/brucad.jpeg"
-                alt="User"
-                fill
-                className="object-cover"
-              />
+              {displayImage && !imageError ? (
+                <Image
+                  key={`user-avatar-${displayImage}`}
+                  src={displayImage}
+                  alt="User"
+                  fill
+                  className="object-cover"
+                  priority
+                  unoptimized
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-emerald-500">
+                  <User size={collapsed ? 20 : 40} className="text-white/70" />
+                </div>
+              )}
             </div>
+            {!uploading && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 transition group-hover:bg-black/40">
+                <Camera
+                  size={collapsed ? 16 : 24}
+                  className="text-white opacity-0 transition group-hover:opacity-100"
+                />
+              </div>
+            )}
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                <Loader2
+                  size={collapsed ? 16 : 24}
+                  className="animate-spin text-white"
+                />
+              </div>
+            )}
           </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleProfilePhotoUpload}
+            disabled={uploading}
+          />
+
           {!collapsed && (
             <div className="animate-in fade-in slide-in-from-top-2 mt-4 text-center duration-300">
               <h3 className="max-w-45 truncate text-base font-bold">
@@ -173,6 +270,11 @@ export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
               <p className="max-w-45 truncate text-[11px] text-emerald-300/60">
                 {user?.email ?? "user@gmail.com"}
               </p>
+              {uploadError && !collapsed && (
+                <p className="mt-1 max-w-45 truncate text-[10px] text-rose-300">
+                  {uploadError}
+                </p>
+              )}
             </div>
           )}
         </div>
