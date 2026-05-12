@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, LayoutGrid, ArrowLeft, SunDim, Bell } from "lucide-react";
+import { Star, LayoutGrid, ArrowLeft, Bell } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
