@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/api";
+import Webcam from "react-webcam";
 import {
   AlertCircle,
   BadgeCheck,
@@ -44,6 +45,11 @@ export default function ReportPage() {
   const { token } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const webcamRef = useRef<Webcam | null>(null);
+  const nativeCameraInputRef = useRef<HTMLInputElement | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraMessage, setCameraMessage] = useState<string | null>(null);
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
@@ -141,6 +147,64 @@ export default function ReportPage() {
     }
   }
 
+  async function startCamera() {
+    try {
+      setError(null);
+      setCameraReady(false);
+      setCameraMessage("Membuka kamera...");
+      setCameraActive(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal membuka kamera");
+    }
+  }
+
+  function stopCamera() {
+    setCameraReady(false);
+    setCameraMessage(null);
+    setCameraActive(false);
+  }
+
+  function capturePhoto() {
+    try {
+      if (!cameraReady) {
+        setCameraMessage("Kamera masih menyiapkan. Coba lagi sebentar.");
+        return;
+      }
+
+      const imageSrc = webcamRef.current?.getScreenshot();
+      if (!imageSrc) {
+        setCameraMessage("Gagal ambil gambar dari kamera. Coba ulangi lagi.");
+        return;
+      }
+
+      // Convert data URL to blob then to File
+      fetch(imageSrc)
+        .then((res) => res.blob())
+        .then((blob) => {
+          const file = new File([blob], `kamera-${Date.now()}.jpg`, {
+            type: blob.type || "image/jpeg",
+          });
+          readFileAsDataUrl(file).then((dataUrl) => {
+            setForm((current) => ({ ...current, imageUrl: dataUrl }));
+            setSelectedFileName("camera.jpg");
+            stopCamera();
+          });
+        })
+        .catch(() => {
+          setCameraMessage("Gagal memproses gambar dari kamera.");
+        });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal capture foto");
+    }
+  }
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -227,33 +291,114 @@ export default function ReportPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-4xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] md:p-8"
+          className="space-y-6 rounded-3xl border border-slate-100 bg-white/95 p-6 shadow-[0_8px_32px_rgba(15,23,42,0.08)] backdrop-blur md:p-8"
         >
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">
-                Upload image
-              </span>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <ImagePlus size={18} className="text-emerald-600" />
+              <div className="flex items-center gap-2">
+                <ImagePlus size={16} className="text-emerald-600" />
+                <span className="text-sm font-semibold text-slate-900">
+                  Foto Sampah
+                </span>
+              </div>
+              <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
+                <div className="flex items-center gap-3 rounded-lg border-2 border-dashed border-emerald-300 bg-white px-4 py-3 transition hover:bg-emerald-50/30">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="w-full text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#2d4327]"
+                    className="w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-700"
                   />
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="text-xs text-slate-500">
                   {selectedFileName
-                    ? `Selected file: ${selectedFileName}`
-                    : "Pilih file gambar dari perangkat, nanti otomatis dikirim ke backend."}
+                    ? `✓ ${selectedFileName}`
+                    : "Pilih file atau ambil foto dari kamera"}
                 </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!cameraActive ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={startCamera}
+                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
+                      >
+                        📷 Buka Kamera
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => nativeCameraInputRef.current?.click()}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                      >
+                        📱 Native
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={capturePhoto}
+                        disabled={!cameraReady}
+                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                      >
+                        ✓ Capture
+                      </button>
+                      <button
+                        type="button"
+                        onClick={stopCamera}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                      >
+                        ✕ Close
+                      </button>
+                    </>
+                  )}
+                </div>
+                {cameraActive && (
+                  <div className="mt-3">
+                    <Webcam
+                      ref={webcamRef}
+                      audio={false}
+                      screenshotFormat="image/jpeg"
+                      screenshotQuality={0.9}
+                      videoConstraints={{ facingMode: { ideal: "environment" } }}
+                      onUserMedia={() => {
+                        setCameraReady(true);
+                        setCameraMessage(null);
+                      }}
+                      onUserMediaError={() => {
+                        setCameraReady(false);
+                        setCameraMessage(
+                          typeof window !== "undefined" && !window.isSecureContext
+                            ? "Kamera butuh HTTPS/localhost. Buka via localhost atau gunakan upload file."
+                            : "Izin kamera ditolak / tidak tersedia. Gunakan upload file atau buka kamera native.",
+                        );
+                      }}
+                      className="h-80 w-full object-cover rounded-2xl bg-black"
+                    />
+                    {cameraMessage && (
+                      <p className="mt-2 text-xs text-slate-500">{cameraMessage}</p>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={nativeCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) {
+                      readFileAsDataUrl(file).then((dataUrl) => {
+                        setForm((current) => ({ ...current, imageUrl: dataUrl }));
+                        setSelectedFileName(file.name);
+                        stopCamera();
+                      });
+                    }
+                  }}
+                />
               </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase">
-                  URL optional
-                </span>
+              <div className="rounded-lg border border-slate-200 bg-white px-4 py-2.5">
                 <input
                   value={form.imageUrl}
                   onChange={(event) =>
@@ -262,39 +407,35 @@ export default function ReportPage() {
                       imageUrl: event.target.value,
                     }))
                   }
-                  placeholder="https://..."
-                  className="w-full bg-transparent text-sm outline-none"
+                  placeholder="atau paste URL gambar..."
+                  className="w-full bg-transparent text-sm outline-none placeholder-slate-400"
                 />
               </div>
             </label>
 
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">
-                Address
-              </span>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <MapPin size={18} className="text-emerald-600" />
-                <input
-                  required
-                  value={form.address}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      address: event.target.value,
-                    }))
-                  }
-                  placeholder="Lokasi sampah ditemukan"
-                  className="w-full bg-transparent text-sm outline-none"
-                />
+              <div className="flex items-center gap-2">
+                <MapPin size={16} className="text-emerald-600" />
+                <span className="text-sm font-semibold text-slate-900">Alamat</span>
               </div>
+              <input
+                required
+                value={form.address}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    address: event.target.value,
+                  }))
+                }
+                placeholder="Lokasi sampah ditemukan"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+              />
             </label>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">
-                Latitude
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Latitude</span>
               <input
                 required
                 value={form.latitude}
@@ -306,14 +447,12 @@ export default function ReportPage() {
                 }
                 placeholder="-6.200000"
                 inputMode="decimal"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm transition outline-none focus:border-emerald-500"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
               />
             </label>
 
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">
-                Longitude
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Longitude</span>
               <input
                 required
                 value={form.longitude}
@@ -325,15 +464,13 @@ export default function ReportPage() {
                 }
                 placeholder="106.816666"
                 inputMode="decimal"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm transition outline-none focus:border-emerald-500"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
               />
             </label>
           </div>
 
           <label className="block space-y-2">
-            <span className="text-sm font-semibold text-slate-700">
-              Description
-            </span>
+            <span className="text-sm font-semibold text-slate-900">Deskripsi (opsional)</span>
             <textarea
               value={form.description}
               onChange={(event) =>
@@ -342,9 +479,9 @@ export default function ReportPage() {
                   description: event.target.value,
                 }))
               }
-              rows={4}
-              placeholder="Jelaskan jenis sampah dan kondisi lokasi"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm transition outline-none focus:border-emerald-500"
+              rows={3}
+              placeholder="Jelaskan jenis sampah dan kondisi lokasi..."
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm transition placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
             />
           </label>
 
@@ -365,14 +502,14 @@ export default function ReportPage() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-green-700 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-[#2d4327] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:shadow-emerald-900/50 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none active:scale-95"
           >
             {loading ? (
-              <Loader2 size={18} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
-              <Send size={18} />
+              <Send size={16} />
             )}
-            Submit report
+            {loading ? "Mengirim..." : "Kirim Laporan"}
           </button>
         </form>
       </section>
@@ -411,42 +548,51 @@ export default function ReportPage() {
               reports.map((report) => (
                 <article
                   key={report.id}
-                  className="rounded-3xl border border-slate-100 bg-slate-50 p-4"
+                  className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:shadow-md"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-slate-900">
-                        {report.address}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {new Date(report.createdAt).toLocaleString("id-ID")}
-                      </p>
+                  <div className="flex gap-3 p-3">
+                    {report.imageUrl && (
+                      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                        <img
+                          src={report.imageUrl}
+                          alt="Report"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-1 flex-col justify-between">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-900">
+                          {report.address}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {new Date(report.createdAt).toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-1 text-[10px] font-bold tracking-[0.16em] uppercase ${report.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`}
+                        >
+                          {report.status}
+                        </span>
+                        <span className="text-[10px] font-semibold text-emerald-600">
+                          +{report.pointsEarned} pts
+                        </span>
+                      </div>
                     </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold tracking-[0.16em] uppercase ${report.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`}
-                    >
-                      {report.status}
-                    </span>
                   </div>
-
-                  <div className="mt-4 grid grid-cols-3 gap-3 text-xs text-slate-500">
-                    <div>
-                      <p className="font-bold text-slate-900">
-                        {report.pointsEarned}
-                      </p>
-                      <p>Points</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">
-                        {report.upvotes}
-                      </p>
-                      <p>Upvotes</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">
-                        {report.latitude.toFixed(3)}
-                      </p>
-                      <p>Lat</p>
+                  <div className="border-t border-slate-100 px-3 py-2.5">
+                    <div className="flex items-center justify-between text-xs text-slate-600">
+                      <div className="flex gap-3">
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-slate-900">{report.upvotes}</span>
+                          <span>upvotes</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-slate-900">{report.latitude.toFixed(2)}°</span>
+                          <span>lat</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </article>
