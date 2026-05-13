@@ -1,6 +1,8 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/api";
+import { useEffect, useState } from "react";
 import {
   ScanLine,
   History,
@@ -20,8 +22,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Mock data untuk grafik
-const data = [
+// Simple fallback chart data (kept if backend has no timeseries)
+const fallbackChartData = [
   { name: "Mon", value: 20 },
   { name: "Tue", value: 25 },
   { name: "Wed", value: 35 },
@@ -31,8 +33,87 @@ const data = [
   { name: "Sun", value: 45 },
 ];
 
+interface RecentReport {
+  id: string;
+  address: string | null;
+  createdAt: string;
+  imageUrl: string;
+}
+
+interface DashboardStats {
+  totalScans?: number;
+  points?: number;
+  rank?: number | null;
+  activeUsers?: number | null;
+}
+
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
+  const [loading, setLoading] = useState(true);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({});
+  const [recentActivity, setRecentActivity] = useState<RecentReport[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+
+        // Leaderboard provides stats and currentUser info
+        const lb = await apiRequest<{
+          data: {
+            stats: Record<string, number>;
+            currentUser: Record<string, unknown> | null;
+          };
+        }>("/leaderboard", {
+          token: token ?? undefined,
+        });
+
+        const stats = lb.data?.stats ?? {};
+        const currentUser = lb.data?.currentUser ?? {};
+
+        // recent reports for this user
+        const rep = await apiRequest<{ data: { reports: RecentReport[] } }>(
+          "/reports/me",
+          {
+            token: token ?? undefined,
+          },
+        );
+
+        if (!mounted) return;
+
+        setDashboardStats({
+          totalScans: Number(
+            (currentUser as Record<string, unknown>)?.scanCount ?? 0,
+          ),
+          points:
+            user?.points ??
+            Number((currentUser as Record<string, unknown>)?.points ?? 0),
+          rank:
+            Number((currentUser as Record<string, unknown>)?.rank ?? null) ||
+            null,
+          activeUsers:
+            Number((stats as Record<string, unknown>)?.totalUsers ?? null) ||
+            null,
+        });
+
+        setRecentActivity(rep.data?.reports ?? []);
+      } catch (err) {
+        // If API fails, keep fallback UI but surface in console
+        console.warn("Failed to load dashboard data:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, [token, user?.points]);
 
   return (
     <div className="animate-in fade-in mx-auto max-w-7xl space-y-10 duration-700">
@@ -48,43 +129,39 @@ export default function DashboardPage() {
 
       {/* Stats Cards Section */}
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          {
-            label: "Total Scans",
-            value: "128",
-            trend: "+11.01%",
-            color: "bg-emerald-50",
-          },
-          {
-            label: "Points",
-            value: "2,318",
-            trend: "+6.08%",
-            color: "bg-emerald-50",
-          },
-          {
-            label: "Rank",
-            value: "15",
-            trend: "+15.03%",
-            color: "bg-emerald-50",
-          },
-          {
-            label: "Active Users",
-            value: "2,318",
-            trend: "+6.08%",
-            color: "bg-emerald-50",
-          },
-        ].map((stat, i) => (
+        {(
+          [
+            {
+              label: "Total Scans",
+              value: dashboardStats.totalScans ?? "—",
+            },
+            {
+              label: "Points",
+              value: dashboardStats.points ?? user?.points ?? "—",
+            },
+            {
+              label: "Rank",
+              value: dashboardStats.rank ?? "—",
+            },
+            {
+              label: "Active Users",
+              value: dashboardStats.activeUsers ?? "—",
+            },
+          ] as Array<{ label: string; value: string | number }>
+        ).map((stat, i) => (
           <div
             key={i}
-            className={`${stat.color} flex flex-col justify-between rounded-3xl p-5`}
+            className={`flex flex-col justify-between rounded-3xl bg-emerald-50 p-5`}
           >
             <p className="text-xs font-semibold text-slate-500">{stat.label}</p>
             <div className="mt-3 flex items-end justify-between">
               <h3 className="text-2xl leading-none font-bold text-slate-900">
-                {stat.value}
+                {typeof stat.value === "number"
+                  ? stat.value.toLocaleString()
+                  : stat.value}
               </h3>
               <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                <span>{stat.trend}</span>
+                <span>{""}</span>
                 <TrendingUp size={10} />
               </div>
             </div>
@@ -135,45 +212,44 @@ export default function DashboardPage() {
             Recent Activity
           </h2>
           <div className="space-y-6">
-            {[
-              {
-                name: "Plastic Bottle",
-                time: "2 hours ago",
-                points: "+10 pts",
-                icon: "🍾",
-              },
-              {
-                name: "Snack Wrapper",
-                time: "8 hours ago",
-                points: "+10 pts",
-                icon: "🍿",
-              },
-              {
-                name: "Plastic Bag",
-                time: "2 days ago",
-                points: "+10 pts",
-                icon: "🛍️",
-              },
-            ].map((act, i) => (
-              <div key={i} className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 text-2xl shadow-sm">
-                    {act.icon}
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 animate-pulse rounded-2xl bg-slate-100/50" />
+                    <div className="w-40">
+                      <div className="h-4 w-full animate-pulse rounded bg-slate-100/50" />
+                      <div className="mt-2 h-3 w-24 animate-pulse rounded bg-slate-100/50" />
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      {act.name}
-                    </h4>
-                    <p className="flex items-center gap-1 text-xs text-slate-400">
-                      <Clock size={10} /> Scanned • {act.time}
-                    </p>
-                  </div>
+                  <div className="h-6 w-20 animate-pulse rounded bg-slate-100/50" />
                 </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">
-                  {act.points}
-                </span>
-              </div>
-            ))}
+              ))
+            ) : recentActivity.length > 0 ? (
+              recentActivity.map((rep: RecentReport) => (
+                <div key={rep.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 text-2xl shadow-sm">
+                      🖼️
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        {rep.address || "Laporan"}
+                      </h4>
+                      <p className="flex items-center gap-1 text-xs text-slate-400">
+                        <Clock size={10} />{" "}
+                        {new Date(rep.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">
+                    +50 pts
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-slate-400">No recent activity</div>
+            )}
           </div>
           <button className="mt-8 w-full rounded-2xl border border-slate-100 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-50">
             View All Activity
@@ -192,7 +268,7 @@ export default function DashboardPage() {
 
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={fallbackChartData}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
