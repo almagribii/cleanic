@@ -8,11 +8,11 @@ import Image from "next/image"; // Import Next Image
 const MOBILE_BREAKPOINT = 1000;
 
 const TEAMS = [
-  { name: "Brucad", image: "/brucad.jpeg" },
-  { name: "Wafira", image: "/wafira.jpeg" },
-  { name: "Faza", image: "/brucad.jpeg" },
-  { name: "Firman", image: "/brucad.jpeg" },
-  { name: "Chinta", image: "/chinta.png" }, 
+  { name: "Brucad", image: "/team/brucad.jpeg" },
+  { name: "Wafira", image: "/team/wafira.jpeg" },
+  { name: "Faza", image: "/team/firman.jpeg" },
+  { name: "Firman", image: "/team/faza.png" },
+  { name: "Chinta", image: "/team/chinta.png" }, 
 ];
 
 interface SplitCharsProps {
