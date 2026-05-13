@@ -117,7 +117,6 @@ export function DashboardSidebar({ onCollapseChange }: SidebarProps) {
       { href: "/dashboard/chatbot", label: "AI Chatbot", icon: Map },
       { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Trophy },
       { href: "/dashboard/profile", label: "Profile", icon: User },
-      { href: "/dashboard/settings", label: "Settings", icon: Settings },
     ],
     [],
   );

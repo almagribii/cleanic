@@ -36,26 +36,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Always return null state to prevent hydration mismatch
 function getInitialAuthState() {
-  if (typeof window === "undefined") {
-    return { user: null, token: null };
-  }
-
-  const savedToken = localStorage.getItem("auth_token");
-  const savedUser = localStorage.getItem("auth_user");
-
-  if (!savedToken || !savedUser) {
-    return { user: null, token: null };
-  }
-
-  try {
-    return {
-      token: savedToken,
-      user: JSON.parse(savedUser) as User,
-    };
-  } catch {
-    return { user: null, token: null };
-  }
+  return { user: null, token: null };
 }
 
 /**
@@ -78,6 +61,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(initialAuthState.token);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Hydrate from localStorage after component mounts
+  useEffect(() => {
+    const savedToken = localStorage.getItem("auth_token");
+    const savedUser = localStorage.getItem("auth_user");
+
+    if (savedToken && savedUser) {
+      try {
+        setToken(savedToken);
+        setUserState(JSON.parse(savedUser) as User);
+      } catch {
+        // Invalid data in localStorage, skip
+      }
+    }
+    setIsHydrated(true);
+  }, []);
 
   // Wrapper function untuk setUser yang juga menyimpan ke localStorage
   const setUser = (newUser: User | null) => {
@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextType = {
     user,
     token,
-    loading,
+    loading: loading || !isHydrated,
     error,
     login,
     register,
