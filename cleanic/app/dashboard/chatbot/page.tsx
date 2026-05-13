@@ -1,4 +1,10 @@
-"use client";
+import { type Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Chatbot",
+  description:
+    "Asisten chatbot Cleanic untuk membantu informasi seputar sampah dan penggunaan platform.",
+};
 
 export default function MapsPage() {
   return (

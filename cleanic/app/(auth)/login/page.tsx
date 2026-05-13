@@ -1,6 +1,11 @@
-"use client";
-
+import { type Metadata } from "next";
 import { LoginForm } from "@/components/LoginForm";
+
+export const metadata: Metadata = {
+  title: "Masuk",
+  description:
+    "Masuk ke akun Cleanic untuk melaporkan sampah, memantau poin, dan melihat leaderboard.",
+};
 
 export default function LoginPage() {
   return (

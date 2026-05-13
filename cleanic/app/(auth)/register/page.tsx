@@ -1,6 +1,11 @@
-"use client";
-
+import { type Metadata } from "next";
 import { RegisterForm } from "@/components/RegisterForm";
+
+export const metadata: Metadata = {
+  title: "Daftar",
+  description:
+    "Buat akun Cleanic untuk mulai melaporkan sampah liar dan mengumpulkan poin dari kontribusimu.",
+};
 
 export default function RegisterPage() {
   return (

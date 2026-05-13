@@ -22,7 +22,6 @@ export function DashboardHeader({ collapsed }: { collapsed: boolean }) {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-[13px] text-slate-500">
           <LayoutGrid size={15} className="text-slate-400" />
-          <Star size={15} className="text-slate-400" />
           <span className="text-slate-200">/</span>
           <span className="text-slate-400">Dashboards</span>
           <span className="text-slate-200">/</span>

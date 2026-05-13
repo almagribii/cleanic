@@ -9,7 +9,6 @@ import {
   Trophy,
   FileText,
   User,
-  Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
