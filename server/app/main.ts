@@ -34,6 +34,7 @@ import authRoutes from "../routes/auth";
 import reportRoutes from "../routes/reports";
 import leaderboardRoutes from "../routes/leaderboard";
 import usersRoutes from "../routes/users";
+import chatbotRoutes from "../routes/chatbot";
 import { authMiddleware } from "../middleware/auth";
 
 const app = express();
@@ -44,7 +45,7 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
@@ -57,6 +58,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 
 // Contoh protected route
 app.get("/api/protected", authMiddleware, (req: any, res) => {

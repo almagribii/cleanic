@@ -1,4 +1,5 @@
 import { type Metadata } from "next";
+import Chatbot from "@/components/Chatbot";
 
 export const metadata: Metadata = {
   title: "Chatbot",
@@ -6,11 +7,10 @@ export const metadata: Metadata = {
     "Asisten chatbot Cleanic untuk membantu informasi seputar sampah dan penggunaan platform.",
 };
 
-export default function MapsPage() {
+export default function ChatbotPage() {
   return (
-    <div className="p-8">
-      <h1 className="mb-4 text-3xl font-bold">Maps</h1>
-      <p className="text-gray-600">Welcome to the Maps page</p>
+    <div className="h-[calc(100vh-5rem)]">
+      <Chatbot />
     </div>
   );
 }

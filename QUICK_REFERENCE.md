@@ -29,6 +29,7 @@ npm run dev
 ## 📡 API Quick Commands
 
 ### Register
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/register \
   -H "Content-Type: application/json" \
@@ -36,6 +37,7 @@ curl -X POST http://localhost:3001/api/auth/register \
 ```
 
 ### Login
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
@@ -44,12 +46,14 @@ curl -X POST http://localhost:3001/api/auth/login \
 ```
 
 ### Get User (replace TOKEN)
+
 ```bash
 curl -X GET http://localhost:3001/api/auth/me \
   -H "Authorization: Bearer TOKEN"
 ```
 
 ### Logout
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/logout \
   -H "Authorization: Bearer TOKEN"
@@ -58,12 +62,13 @@ curl -X POST http://localhost:3001/api/auth/logout \
 ## 💻 Frontend Code Snippets
 
 ### Use Auth Hook
+
 ```typescript
 import { useAuth } from "@/hooks/useAuth";
 
 export function MyComponent() {
   const { user, login, logout, isAuthenticated } = useAuth();
-  
+
   return (
     <div>
       {isAuthenticated ? (
@@ -80,6 +85,7 @@ export function MyComponent() {
 ```
 
 ### Protect Route
+
 ```typescript
 import { ProtectedRoute } from "@/hooks/useAuth";
 
@@ -93,6 +99,7 @@ export default function DashboardPage() {
 ```
 
 ### Login Form Usage
+
 ```typescript
 import { LoginForm } from "@/components/LoginForm";
 
@@ -104,6 +111,7 @@ export default function LoginPage() {
 ## 🔑 Backend Code Snippets
 
 ### Protected Endpoint
+
 ```typescript
 import { authMiddleware } from "./middleware/auth";
 
@@ -114,6 +122,7 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 ```
 
 ### Get User Info
+
 ```typescript
 import { getUserById } from "./lib/user";
 
@@ -121,6 +130,7 @@ const user = await getUserById(userId);
 ```
 
 ### Add User Points
+
 ```typescript
 import { addUserPoints } from "./lib/user";
 
@@ -168,24 +178,111 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api
 
 ## 🚨 Common Issues & Fixes
 
-| Issue | Solution |
-|-------|----------|
-| "Module not found" | Run `npm install` |
-| "Can't connect to server" | Check if server is running on port 3001 |
-| "JWT_SECRET not found" | Add JWT_SECRET to `.env` |
-| "Token expired" | Call `refreshToken()` endpoint |
-| "Unauthorized" | Check if token is valid and not expired |
-| "CORS error" | Update CORS_ORIGIN in server/app/main.ts |
+| Issue                     | Solution                                 |
+| ------------------------- | ---------------------------------------- |
+| "Module not found"        | Run `npm install`                        |
+| "Can't connect to server" | Check if server is running on port 3001  |
+| "JWT_SECRET not found"    | Add JWT_SECRET to `.env`                 |
+| "Token expired"           | Call `refreshToken()` endpoint           |
+| "Unauthorized"            | Check if token is valid and not expired  |
+| "CORS error"              | Update CORS_ORIGIN in server/app/main.ts |
 
 ## 📚 Key Files to Know
 
-| File | Purpose |
-|------|---------|
-| `server/lib/auth.ts` | Generate & verify tokens, hash passwords |
-| `server/routes/auth.ts` | Auth API endpoints |
-| `cleanic/hooks/useAuth.ts` | React state management for auth |
-| `server/.env` | API credentials (DO NOT COMMIT) |
-| `server/prisma/schema.prisma` | Database schema |
+| File                             | Purpose                                  |
+| -------------------------------- | ---------------------------------------- |
+| `server/lib/auth.ts`             | Generate & verify tokens, hash passwords |
+| `server/routes/auth.ts`          | Auth API endpoints                       |
+| `server/routes/chatbot.ts`       | Chatbot API endpoints                    |
+| `cleanic/hooks/useAuth.ts`       | React state management for auth          |
+| `cleanic/components/Chatbot.tsx` | Chatbot UI component                     |
+| `server/.env`                    | API credentials (DO NOT COMMIT)          |
+| `server/prisma/schema.prisma`    | Database schema                          |
+
+## 🤖 Chatbot Quick Start
+
+### Setup (1 minute)
+
+```bash
+# 1. Get Gemini API Key from https://aistudio.google.com/apikey
+# 2. Add to server/.env:
+GEMINI_API_KEY="your-actual-key-here"
+
+# 3. Start backend (if not already running)
+cd server && bun run dev
+
+# 4. Start frontend
+cd cleanic && npm run dev
+
+# 5. Access chatbot
+# Open: http://localhost:3000/dashboard/chatbot
+```
+
+### Chatbot API Commands
+
+#### Get All Conversations
+
+```bash
+curl -X GET http://localhost:3001/api/chatbot/conversations \
+  -H "Authorization: Bearer TOKEN"
+```
+
+#### Create New Conversation
+
+```bash
+curl -X POST http://localhost:3001/api/chatbot/conversations \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Chat"}'
+```
+
+#### Send Message
+
+```bash
+curl -X POST http://localhost:3001/api/chatbot/send-message \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"conversationId":"conv-id","message":"Hello!"}'
+```
+
+#### Get Conversation Messages
+
+```bash
+curl -X GET http://localhost:3001/api/chatbot/conversations/CONV_ID \
+  -H "Authorization: Bearer TOKEN"
+```
+
+#### Delete Conversation
+
+```bash
+curl -X DELETE http://localhost:3001/api/chatbot/conversations/CONV_ID \
+  -H "Authorization: Bearer TOKEN"
+```
+
+### Frontend Usage
+
+```typescript
+import Chatbot from '@/components/Chatbot';
+
+// Use in dashboard/chatbot/page.tsx:
+export default function ChatbotPage() {
+  return (
+    <div className="h-[calc(100vh-5rem)]">
+      <Chatbot />
+    </div>
+  );
+}
+```
+
+### Key Features
+
+- 🤖 Gemini 2.5 Pro AI
+- 💬 Real-time messaging
+- 📝 Markdown support
+- 🎨 Elegant dark theme UI
+- 📱 Responsive design
+- 💾 Persistent conversation history
+- ⌨️ Keyboard shortcuts (Enter to send)
 
 ## 🔐 Security Checklist
 
