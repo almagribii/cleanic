@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Send, Plus, Trash2, MessageCircle } from "lucide-react";
+import { Send, Plus, Trash2, MessageCircle, Menu, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -39,6 +39,7 @@ const Chatbot: React.FC = () => {
   const [editTitle, setEditTitle] = useState("");
   const [savingTitle, setSavingTitle] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const API_URL =
@@ -95,6 +96,7 @@ const Chatbot: React.FC = () => {
       );
       setCurrentConversation(response.data.data);
       setMessages(response.data.data.messages || []);
+      setMobileSidebarOpen(false);
     } catch (error) {
       console.error("Error loading conversation:", error);
     }
@@ -118,6 +120,7 @@ const Chatbot: React.FC = () => {
       const newConversation = response.data.data;
       setConversations([newConversation, ...conversations]);
       await loadConversation(newConversation);
+      setMobileSidebarOpen(false);
     } catch (error) {
       console.error("Error creating conversation:", error);
     }
@@ -290,14 +293,37 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full gap-4 bg-[#fafafa] rounded-2xl">
+    <div className="relative flex h-full min-h-0 overflow-hidden rounded-2xl bg-[#fafafa]">
+      {mobileSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close conversation list"
+          onClick={() => setMobileSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-slate-950/30 lg:hidden"
+        />
+      )}
+
       {/* Sidebar - Conversations */}
-      <div className="flex w-64 flex-col overflow-y-auto border-r border-slate-200 bg-white rounded-2xl">
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-80 max-w-[85vw] -translate-x-full flex-col overflow-hidden border-r border-slate-200 bg-white shadow-2xl transition-transform duration-200 lg:relative lg:z-auto lg:w-72 lg:max-w-none lg:translate-x-0 lg:rounded-l-2xl lg:shadow-none ${
+          mobileSidebarOpen ? "translate-x-0" : ""
+        }`}
+      >
         {/* Header */}
-        <div className="sticky top-0 border-b border-slate-100 bg-white p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-900">
-            Conversations
-          </h2>
+        <div className="border-b border-slate-100 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between gap-3 lg:block">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Conversations
+            </h2>
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(false)}
+              className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 lg:hidden"
+              aria-label="Close conversation list"
+            >
+              <X size={18} />
+            </button>
+          </div>
           <button
             onClick={createNewConversation}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#10b981] to-[#059669] px-3 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
@@ -308,7 +334,7 @@ const Chatbot: React.FC = () => {
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 space-y-2 overflow-y-auto p-3">
+        <div className="flex-1 space-y-2 overflow-y-auto p-3 pb-24 lg:pb-3">
           {conversations.length === 0 ? (
             <p className="py-8 text-center text-xs text-slate-500">
               No conversations yet
@@ -325,7 +351,7 @@ const Chatbot: React.FC = () => {
                 onClick={() => loadConversation(conv)}
               >
                 <span
-                  className={`truncate text-sm ${
+                  className={`truncate pr-2 text-sm ${
                     currentConversation?.id === conv.id
                       ? "font-medium text-[#10b981]"
                       : "text-slate-700"
@@ -339,7 +365,7 @@ const Chatbot: React.FC = () => {
                       e.stopPropagation();
                       openEditModal(conv);
                     }}
-                    className="rounded p-1 transition-colors hover:bg-slate-100"
+                    className="rounded p-1 transition-colors hover:bg-slate-100 lg:opacity-0 lg:group-hover:opacity-100"
                     aria-label="Edit conversation title"
                   >
                     <svg
@@ -362,7 +388,7 @@ const Chatbot: React.FC = () => {
                       e.stopPropagation();
                       openDeleteModal(conv);
                     }}
-                    className="rounded p-1 transition-colors hover:bg-red-100"
+                    className="rounded p-1 transition-colors hover:bg-red-100 lg:opacity-0 lg:group-hover:opacity-100"
                     aria-label="Delete conversation"
                   >
                     <Trash2 size={14} className="text-red-500" />
@@ -372,26 +398,47 @@ const Chatbot: React.FC = () => {
             ))
           )}
         </div>
-      </div>
+      </aside>
 
       {/* Main Chat Area */}
-      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white lg:ml-4">
         {/* Chat Header */}
-        {currentConversation && (
-          <div className="border-b border-slate-100 bg-linear-to-r from-white to-[#f0fdf4] px-6 py-4">
-            <h1 className="font-semibold text-slate-900">
-              {currentConversation.title}
-            </h1>
-            <p className="mt-1 text-xs text-slate-500">
-              Powered by Gemini 2.5 Pro
-            </p>
+        <div className="sticky top-0 z-20 border-b border-slate-100 bg-white/95 px-4 py-3 backdrop-blur md:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMobileSidebarOpen(true)}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-600 transition-colors hover:bg-slate-50 lg:hidden"
+                aria-label="Open conversation list"
+              >
+                <Menu size={18} />
+              </button>
+              <div className="min-w-0">
+                <h1 className="truncate text-sm font-semibold text-slate-900 md:text-base">
+                  {currentConversation?.title || "Chatbot"}
+                </h1>
+                <p className="mt-0.5 truncate text-[11px] text-slate-500 md:text-xs">
+                  Powered by Gemini 2.5 Pro
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={createNewConversation}
+              className="hidden items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 lg:inline-flex"
+            >
+              <Plus size={14} />
+              New Chat
+            </button>
           </div>
-        )}
+        </div>
 
         {/* Messages Container */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-6">
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 md:px-6 md:py-6">
           {messages.length === 0 && (
-            <div className="flex h-full flex-col items-center justify-center text-center">
+            <div className="flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center text-center">
               <MessageCircle size={48} className="mb-4 text-slate-300" />
               <h3 className="mb-2 text-lg font-semibold text-slate-600">
                 Start a Conversation
@@ -400,7 +447,7 @@ const Chatbot: React.FC = () => {
                 Saya hanya menjawab edukasi lingkungan: sampah, daur ulang, 3R,
                 hemat air, hemat energi, dan kebersihan lingkungan.
               </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <div className="mt-5 flex flex-wrap justify-center gap-2 px-2">
                 {[
                   "Cara memilah sampah rumah",
                   "Apa itu kompos?",
@@ -426,7 +473,7 @@ const Chatbot: React.FC = () => {
               className={`flex ${msg.role === "USER" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-md rounded-xl px-4 py-3 ${
+                className={`max-w-[85%] rounded-xl px-4 py-3 sm:max-w-md ${
                   msg.role === "USER"
                     ? "rounded-br-none bg-[#10b981] text-white"
                     : "rounded-bl-none border border-slate-200 bg-slate-100 text-slate-900"
@@ -510,9 +557,9 @@ const Chatbot: React.FC = () => {
         {/* Input Area */}
         <form
           onSubmit={sendMessage}
-          className="border-t border-slate-100 bg-white p-4"
+          className="border-t border-slate-100 bg-white p-3 md:p-4"
         >
-          <div className="flex gap-3">
+          <div className="flex items-end gap-2 md:gap-3">
             <textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -520,17 +567,17 @@ const Chatbot: React.FC = () => {
               disabled={loading || !currentConversation}
               placeholder={
                 currentConversation
-                  ? "Type your message... (Shift+Enter for new line)"
+                  ? "Type your message..."
                   : "Create or select a conversation first"
               }
               rows={1}
-              className="flex-1 resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-[#10b981] focus:ring-2 focus:ring-[#10b981]/50 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500"
+              className="min-h-12 flex-1 resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm focus:border-[#10b981] focus:ring-2 focus:ring-[#10b981]/50 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 md:px-4"
               style={{ maxHeight: "120px" }}
             />
             <button
               type="submit"
               disabled={loading || !inputValue.trim() || !currentConversation}
-              className="flex items-center justify-center rounded-lg bg-linear-to-r from-[#10b981] to-[#059669] px-4 py-3 text-sm font-medium text-white transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-12 w-12 items-center justify-center rounded-lg bg-linear-to-r from-[#10b981] to-[#059669] p-0 text-sm font-medium text-white transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 md:w-auto md:px-4"
             >
               <Send size={18} />
             </button>
